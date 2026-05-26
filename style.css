@@ -1,60 +1,359 @@
-/* Definições de Reset Globais e Ocultação */
+/* ==========================================================================
+   RESET E CONFIGURAÇÕES GERAIS
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    color: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #0d1117; /* Fallback caso o vídeo falhe */
+}
+
+/* Força o vídeo a ocupar 100% da tela por trás de tudo */
+#background-video {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: -2;
+    transform: translateX(-50%) translateY(-50%);
+    object-fit: cover;
+}
+
+/* Camada escura com leve tom azulado para dar contraste aos textos */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(10, 15, 30, 0.75), rgba(0, 0, 0, 0.6));
+    z-index: -1;
+}
+
+/* Classe utilitária invisível */
 .hidden {
     display: none !important;
 }
 
-/* Área Geral de Vídeo */
-.video-streams {
+/* ==========================================================================
+   CONTAINER PRINCIPAL (GLASSMORPHISM)
+   ========================================================================== */
+.main-container {
+    width: 95%;
+    max-width: 1200px;
+    height: 85vh;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    padding: 30px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-    width: 100%;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
 }
 
-/* Grid Inteligente para os convidados da chamada */
-.remote-grid-container {
+h1 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-align: center;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   TELA INICIAL (LOGIN / SETUP)
+   ========================================================================== */
+.user-setup-section {
+    margin: auto;
+    width: 100%;
+    max-width: 400px;
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 15px;
-    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 35px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.user-setup-section input {
+    width: 100%;
+    padding: 14px 20px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    color: #fff;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.user-setup-section input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #3880ff;
+    box-shadow: 0 0 0 3px rgba(56, 128, 255, 0.25);
+}
+
+.user-setup-section input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ==========================================================================
+   INTERFACES DA SALA AO VIVO (ESTILO MEET)
+   ========================================================================== */
+.live-section {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 320px; /* Divide espaço entre Vídeos e Chat */
+    gap: 20px;
+    min-height: 0; /* Evita quebra de overflow no grid */
+}
+
+/* Grid de Vídeos */
+.video-streams {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.remote-grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 15px;
     width: 100%;
 }
 
-/* Redimensionamento responsivo para os blocos de vídeo de todos na sala */
+/* Boxes dos Vídeos */
 .video-wrapper {
-    background: #111;
-    border-radius: 12px;
+    background: #14171c;
+    border-radius: 14px;
     overflow: hidden;
     position: relative;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    flex: 1 1 calc(45% - 15px);
-    min-width: 290px;
-    max-width: 450px;
-    transition: all 0.3s ease;
+    aspect-ratio: 16 / 9;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .video-wrapper video {
     width: 100%;
-    height: auto;
-    display: block;
-    transform: scaleX(-1); /* Efeito espelho confortável para chamadas */
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1); /* Inverte para visualização espelho */
 }
 
-.local-stream {
-    max-width: 500px;
-    margin: 0 auto;
-    border: 2px solid #007bff;
+.video-title {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    backdrop-filter: blur(4px);
+    z-index: 5;
+    border: 1px solid rgba(255,255,255,0.1);
 }
 
-/* Classes de formatação do Chat Dinâmico */
+/* Menu de controles em cima do vídeo local */
+.controls {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    gap: 8px;
+    z-index: 10;
+}
+
+/* ==========================================================================
+   BOTÕES E ELEMENTOS INTERATIVOS
+   ========================================================================== */
+.action-button, .control-button {
+    font-size: 0.9rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-button {
+    padding: 14px 24px;
+}
+
+.action-button.primary { background-color: #3880ff; color: #fff; }
+.action-button.primary:hover { background-color: #2870ea; transform: translateY(-1px); }
+
+.action-button.danger { background-color: #eb445a; color: #fff; }
+.action-button.danger:hover { background-color: #d83046; }
+
+.control-button {
+    padding: 8px 14px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.8rem;
+}
+.control-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================================================
+   CHAT DA REUNIÃO
+   ========================================================================== */
+.text-chat {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.text-chat h3 {
+    font-size: 1rem;
+    padding: 15px;
+    background: rgba(255,255,255,0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-weight: 500;
+}
+
+#messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 #messages p {
-    margin: 5px 0;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.95em;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    max-width: 85%;
     word-wrap: break-word;
 }
-#messages p.success { background-color: rgba(40, 167, 69, 0.2); color: #28a745; }
-#messages p.info { background-color: rgba(23, 162, 184, 0.2); color: #17a2b8; }
-#messages p.sent { background-color: rgba(0, 123, 255, 0.1); text-align: right; color: #007bff; }
-#messages p.received { background-color: rgba(255, 255, 255, 0.1); text-align: left; color: #f8f9fa; }
+
+/* Balões de Mensagem */
+#messages p.sent {
+    background: #3880ff;
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+}
+
+#messages p.received {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+}
+
+#messages p.success, #messages p.info {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255,255,255,0.6);
+    font-size: 0.8rem;
+    text-align: center;
+    align-self: center;
+    max-width: 100%;
+    border-radius: 20px;
+}
+
+/* Entrada do Chat */
+.message-input-area {
+    padding: 12px;
+    display: flex;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.message-input-area input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 15px;
+    border-radius: 8px;
+    color: #fff;
+    outline: none;
+}
+
+.message-input-area input:focus {
+    border-color: #3880ff;
+}
+
+.action-button.small {
+    padding: 0 15px;
+    border-radius: 8px;
+    background: #3880ff;
+    color: white;
+}
+
+/* Ações Inferiores */
+.call-actions {
+    grid-column: span 2;
+    display: flex;
+    justify-content: center;
+    padding-top: 10px;
+}
+
+.status-message {
+    font-size: 0.85rem;
+    text-align: center;
+}
+.status-message.warning { color: #ffc409; }
+.status-message.info { color: #52a1ff; }
+.status-message.error { color: #eb445a; }
+
+/* ==========================================================================
+   RESPONSIVIDADE (MOBILE)
+   ========================================================================== */
+@media (max-width: 850px) {
+    body {
+        overflow: auto;
+    }
+    .main-container {
+        height: auto;
+        min-height: 95vh;
+        padding: 15px;
+    }
+    .live-section {
+        grid-template-columns: 1fr; /* Coloca o chat embaixo do vídeo em telas pequenas */
+    }
+    .call-actions {
+        grid-column: span 1;
+    }
+    .text-chat {
+        height: 350px;
+    }
+}
