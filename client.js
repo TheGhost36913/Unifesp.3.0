@@ -1,23 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Conecta automaticamente ao host atual (importante para o Render)
     const socket = io({
         transports: ['websocket', 'polling'],
         upgrade: true
     });
 
-    // Elementos DOM
-    const localVideo = document.getElementById('localVideo');
-    const remoteVideosContainer = document.getElementById('remoteVideosContainer');
+    // Elementos do DOM
+    const meetingGrid = document.getElementById('meetingGrid');
     const usernameInput = document.getElementById('usernameInput');
     const roomInput = document.getElementById('roomInput');
     const joinRoomButton = document.getElementById('joinRoomButton');
     const userSetupSection = document.querySelector('.user-setup-section');
     const liveSection = document.querySelector('.live-section');
-    const localUsernameSpan = document.getElementById('localUsername');
     const setupStatus = document.getElementById('setupStatus');
     const leaveCallButton = document.getElementById('leaveCallButton');
-    const toggleAudioButton = document.getElementById('toggleAudio');
-    const toggleVideoButton = document.getElementById('toggleVideo');
     const messageInput = document.getElementById('messageInput');
     const sendMessageButton = document.getElementById('sendMessage');
     const messagesDiv = document.getElementById('messages');
@@ -26,71 +21,116 @@ document.addEventListener('DOMContentLoaded', () => {
     let myUsername = '';
     let myRoom = '';
     
-    // Armazena todas as conexões WebRTC ativas: Map<socketId, RTCPeerConnection>
     const peerConnections = new Map();
 
-    // Lista estendida de Servidores STUN públicos (Google) para quebrar firewalls simétricos no Render
     const rtcConfiguration = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' },
-            { urls: 'stun:stun4.l.google.com:19302' }
+            { urls: 'stun:stun2.l.google.com:19302' }
         ]
     };
 
-    // Fluxo de entrada na sala
+    // Ação do Botão Entrar
     joinRoomButton.addEventListener('click', async () => {
         const username = usernameInput.value.trim();
         const roomName = roomInput.value.trim();
 
         if (!username || !roomName) {
-            updateStatus('Por favor, informe seu Nome e a Sala.', 'warning');
+            updateStatus('Informe seu Nome e a Sala para prosseguir.', 'warning');
             return;
         }
 
         myUsername = username;
         myRoom = roomName;
-        updateStatus('Solicitando acesso aos periféricos...', 'info');
+        updateStatus('Configurando dispositivos...', 'info');
 
         try {
-            // Captura áudio e vídeo do usuário
+            // Captura o hardware local
             localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            localVideo.srcObject = localStream;
-            localUsernameSpan.textContent = myUsername;
-
-            // Altera visibilidade da tela
+            
+            // Transiciona a interface para o modo Reunião
             userSetupSection.classList.add('hidden');
             liveSection.classList.remove('hidden');
 
-            // Dispara entrada oficial no Servidor hospedado no Render
+            // CRIA A SUA PRÓPRIA JANELA NO MOSAICO (Como no Google Meet)
+            createLocalVideoBox();
+
+            // Sincroniza a entrada com o Render
             socket.emit('join_room', { username: myUsername, roomName: myRoom });
-            printSystemMessage(`Conectado à sala: ${myRoom}`, 'success');
+            printSystemMessage(`Você se conectou à sala: ${myRoom}`, 'success');
 
         } catch (err) {
             console.error(err);
-            updateStatus('Falha ao obter permissão de Câmera/Microfone.', 'error');
+            updateStatus('Acesso à Câmera ou Microfone foi recusado.', 'error');
         }
     });
 
-    // Inicializa uma conexão WebRTC com um par específico da sala
+    // Função interna que monta o seu bloco de vídeo dentro do grid coletivo
+    function createLocalVideoBox() {
+        const myBox = document.createElement('div');
+        myBox.className = 'video-wrapper my-stream';
+        myBox.id = 'myVideoBox';
+
+        const label = document.createElement('h2');
+        label.className = 'video-title';
+        label.textContent = `${myUsername} (Você)`;
+
+        const videoEl = document.createElement('video');
+        videoEl.autoplay = true;
+        videoEl.muted = true; // Mutado para evitar eco nas suas próprias caixas de som
+        videoEl.playsInline = true;
+        videoEl.srcObject = localStream;
+
+        // Cria botões de controle integrados à janela
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'controls';
+
+        const btnAudio = document.createElement('button');
+        btnAudio.className = 'control-button';
+        btnAudio.textContent = 'Mic ON';
+        btnAudio.onclick = () => {
+            const track = localStream.getAudioTracks()[0];
+            track.enabled = !track.enabled;
+            btnAudio.textContent = track.enabled ? 'Mic ON' : 'Mic OFF';
+            btnAudio.style.background = track.enabled ? 'rgba(0, 0, 0, 0.6)' : '#eb445a';
+        };
+
+        const btnVideo = document.createElement('button');
+        btnVideo.className = 'control-button';
+        btnVideo.textContent = 'Cam ON';
+        btnVideo.onclick = () => {
+            const track = localStream.getVideoTracks()[0];
+            track.enabled = !track.enabled;
+            btnVideo.textContent = track.enabled ? 'Cam ON' : 'Cam OFF';
+            btnVideo.style.background = track.enabled ? 'rgba(0, 0, 0, 0.6)' : '#eb445a';
+        };
+
+        controlsDiv.appendChild(btnAudio);
+        controlsDiv.appendChild(btnVideo);
+        
+        myBox.appendChild(label);
+        myBox.appendChild(videoEl);
+        myBox.appendChild(controlsDiv);
+        meetingGrid.appendChild(myBox);
+    }
+
+    // Inicializa a conexão de novos integrantes na sala mesh
     function initPeerConnection(peerSocketId, peerUsername, isInitiator) {
         const pc = new RTCPeerConnection(rtcConfiguration);
         peerConnections.set(peerSocketId, pc);
 
-        // Injeta os canais locais (Áudio/Vídeo) na conexão criada
         if (localStream) {
             localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
         }
 
-        // Evento disparado quando o sinal de vídeo do outro usuário chega
+        // Quando o sinal de vídeo de terceiros chega, cria uma pequena janela para ele no mosaico
         pc.ontrack = (event) => {
-            if (document.getElementById(`video_${peerSocketId}`)) return;
+            if (document.getElementById(`box_${peerSocketId}`)) return;
 
-            const videoBox = document.createElement('div');
-            videoBox.className = 'video-wrapper';
-            videoBox.id = `box_${peerSocketId}`;
+            const remoteBox = document.createElement('div');
+            remoteBox.className = 'video-wrapper';
+            remoteBox.id = `box_${peerSocketId}`;
 
             const label = document.createElement('h2');
             label.className = 'video-title';
@@ -102,12 +142,11 @@ document.addEventListener('DOMContentLoaded', () => {
             videoEl.playsInline = true;
             videoEl.srcObject = event.streams[0];
 
-            videoBox.appendChild(label);
-            videoBox.appendChild(videoEl);
-            remoteVideosContainer.appendChild(videoBox);
+            remoteBox.appendChild(label);
+            remoteBox.appendChild(videoEl);
+            meetingGrid.appendChild(remoteBox); // Adiciona no mesmo container compartilhado
         };
 
-        // Envia candidatos de rede gerados para o par remoto
         pc.onicecandidate = (event) => {
             if (event.candidate) {
                 socket.emit('webrtc_signal', {
@@ -118,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Se você for o iniciador, cria a Oferta de SDP automaticamente
         if (isInitiator) {
             pc.onnegotiationneeded = async () => {
                 try {
@@ -130,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         payload: offer
                     });
                 } catch (e) {
-                    console.error('Erro ao processar oferta:', e);
+                    console.error(e);
                 }
             };
         }
@@ -138,12 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return pc;
     }
 
-    // Processa os sinais WebRTC recebidos pelo servidor do Render
     async function processIncomingSignal(data) {
         let pc = peerConnections.get(data.from);
-
         if (!pc) {
-            // Se a conexão não existe ainda, cria como receptor (isInitiator = false)
             pc = initPeerConnection(data.from, data.username, false);
         }
 
@@ -165,23 +200,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         } catch (err) {
-            console.error('Falha no handshake SDP:', err);
+            console.error(err);
         }
     }
 
-    // --- Sincronização e Handshake via Socket.IO ---
+    // --- Sincronismo Socket.IO ---
 
     socket.on('current_room_users', (users) => {
         users.forEach(user => {
-            printSystemMessage(`${user.username} já está presente na conferência.`, 'info');
-            // Quem entra cria a conexão disparando ofertas (true)
+            printSystemMessage(`${user.username} está na reunião.`, 'info');
             initPeerConnection(user.socketId, user.username, true);
         });
     });
 
     socket.on('new_user_joined', (user) => {
-        printSystemMessage(`${user.username} entrou na sala de reunião.`, 'success');
-        // Quem já estava apenas aceita a chamada criando o par passivo (false)
+        printSystemMessage(`${user.username} conectou à conferência.`, 'success');
         initPeerConnection(user.socketId, user.username, false);
     });
 
@@ -204,7 +237,7 @@ document.addEventListener('DOMContentLoaded', () => {
         printSystemMessage(data.message, CSSClass, data.sender);
     });
 
-    // --- Controles de Chat e UI ---
+    // --- Chat e Encerramento ---
 
     sendMessageButton.addEventListener('click', () => {
         const text = messageInput.value.trim();
@@ -219,25 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     leaveCallButton.addEventListener('click', () => {
-        window.location.reload(); // Recarrega limpando todos os estados e fechando a conexão
-    });
-
-    toggleAudioButton.addEventListener('click', () => {
-        if (localStream) {
-            const track = localStream.getAudioTracks()[0];
-            track.enabled = !track.enabled;
-            toggleAudioButton.textContent = track.enabled ? 'Mic ON' : 'Mic OFF';
-            toggleAudioButton.style.background = track.enabled ? '#007bff' : '#dc3545';
-        }
-    });
-
-    toggleVideoButton.addEventListener('click', () => {
-        if (localStream) {
-            const track = localStream.getVideoTracks()[0];
-            track.enabled = !track.enabled;
-            toggleVideoButton.textContent = track.enabled ? 'Cam ON' : 'Cam OFF';
-            toggleVideoButton.style.background = track.enabled ? '#007bff' : '#dc3545';
-        }
+        window.location.reload();
     });
 
     function updateStatus(text, type) {
