@@ -1,0 +1,17 @@
+{
+  "name": "gruvoice-multi-meet",
+  "version": "1.1.0",
+  "description": "Plataforma de reunião multi-usuário estilo Google Meet para o Render",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "ISC"
+}

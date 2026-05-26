@@ -1,0 +1,60 @@
+/* Definições de Reset Globais e Ocultação */
+.hidden {
+    display: none !important;
+}
+
+/* Área Geral de Vídeo */
+.video-streams {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+}
+
+/* Grid Inteligente para os convidados da chamada */
+.remote-grid-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    width: 100%;
+}
+
+/* Redimensionamento responsivo para os blocos de vídeo de todos na sala */
+.video-wrapper {
+    background: #111;
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    flex: 1 1 calc(45% - 15px);
+    min-width: 290px;
+    max-width: 450px;
+    transition: all 0.3s ease;
+}
+
+.video-wrapper video {
+    width: 100%;
+    height: auto;
+    display: block;
+    transform: scaleX(-1); /* Efeito espelho confortável para chamadas */
+}
+
+.local-stream {
+    max-width: 500px;
+    margin: 0 auto;
+    border: 2px solid #007bff;
+}
+
+/* Classes de formatação do Chat Dinâmico */
+#messages p {
+    margin: 5px 0;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.95em;
+    word-wrap: break-word;
+}
+#messages p.success { background-color: rgba(40, 167, 69, 0.2); color: #28a745; }
+#messages p.info { background-color: rgba(23, 162, 184, 0.2); color: #17a2b8; }
+#messages p.sent { background-color: rgba(0, 123, 255, 0.1); text-align: right; color: #007bff; }
+#messages p.received { background-color: rgba(255, 255, 255, 0.1); text-align: left; color: #f8f9fa; }
