@@ -11,7 +11,7 @@
 body {
     width: 100vw;
     height: 100vh;
-    overflow: hidden;
+    overflow: hidden; /* Mantém fixo no desktop, alterado via mobile */
     color: #ffffff;
     display: flex;
     justify-content: center;
@@ -65,6 +65,7 @@ body::before {
     flex-direction: column;
     gap: 15px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    justify-content: center; /* Centraliza a caixa de login nativamente se a live não começou */
 }
 
 h1 {
@@ -74,23 +75,26 @@ h1 {
     padding-bottom: 8px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     letter-spacing: 0.5px;
+    margin-bottom: auto; /* Empurra o conteúdo para o centro */
 }
 
 /* ==========================================================================
-   PAINEL DE LOGIN / SETUP (NOME DE USUÁRIO E SALA) - 100% CORRIGIDO
+   PAINEL DE LOGIN / SETUP (NOME DE USUÁRIO E SALA) - CORREÇÃO COMPLETA
    ========================================================================== */
 .user-setup-section {
-    display: flex; 
-    flex-direction: column;
-    gap: 15px;
     width: 100%;
     max-width: 380px;
-    background: rgba(13, 17, 23, 0.9); /* Fundo contrastante escuro */
+    background: rgba(13, 17, 23, 0.9); /* Fundo escuro de alto contraste */
     padding: 35px 30px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.15);
     box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
-    margin: auto; /* Alinhamento dinâmico e perfeito bem no centro do container */
+    margin: 0 auto cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: auto;    /* Truque flexbox para centralização vertical perfeita */
+    margin-bottom: auto; /* Truque flexbox para centralização vertical perfeita */
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .user-setup-section input {
@@ -110,7 +114,7 @@ h1 {
     background: rgba(255, 255, 255, 0.15);
 }
 
-/* Garante a visibilidade das letras provisórias em qualquer dispositivo */
+/* Garante visibilidade do texto interno (Placeholder) */
 .user-setup-section input::placeholder {
     color: rgba(255, 255, 255, 0.6) !important;
 }
@@ -325,6 +329,7 @@ h1 {
 
     h1 {
         font-size: 1.1rem;
+        margin-bottom: 15px;
     }
 
     /* Transforma a grelha em coluna única no telemóvel */
