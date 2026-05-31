@@ -348,3 +348,17 @@ h1 {
         width: 100%;                /* Botões ocupam a largura total para facilitar o clique com o polegar */
     }
 }
+.call-actions {
+    grid-column: span 2;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding-top: 5px;
+}
+@media (max-width: 800px) {
+    .call-actions {
+        grid-column: span 1;
+        flex-direction: column;
+        width: 100%;
+    }
+}
