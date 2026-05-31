@@ -11,7 +11,7 @@
 body {
     width: 100vw;
     height: 100vh;
-    overflow: hidden; /* Mantém fixo no desktop, alterado via mobile */
+    overflow: hidden;
     color: #ffffff;
     display: flex;
     justify-content: center;
@@ -19,7 +19,6 @@ body {
     background-color: #0d1117;
 }
 
-/* Vídeo de fundo adaptável */
 #background-video {
     position: fixed;
     top: 50%;
@@ -49,49 +48,43 @@ body::before {
 }
 
 /* ==========================================================================
-   CONTAINER PRINCIPAL (GLASSMORPHISM)
+   CONTAINER PRINCIPAL
    ========================================================================== */
 .main-container {
     width: 96%;
-    max-width: 1500px;
-    height: 92vh;
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 20px;
-    padding: 20px;
+    max-width: 1200px;
+    height: 85vh;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 25px;
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-    justify-content: center; /* Centraliza a caixa de login nativamente se a live não começou */
+    gap: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
 }
 
 h1 {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     font-weight: 600;
     text-align: center;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    letter-spacing: 0.5px;
-    margin-bottom: auto; /* Empurra o conteúdo para o centro */
+    letter-spacing: 1px;
 }
 
 /* ==========================================================================
-   PAINEL DE LOGIN / SETUP (NOME DE USUÁRIO E SALA) - CORREÇÃO COMPLETA
+   CAIXA DE LOGIN (CENTRALIZADA E EXPANDIDA)
    ========================================================================== */
 .user-setup-section {
+    margin: auto; /* Alinha perfeitamente no centro do container principal */
     width: 100%;
-    max-width: 380px;
-    background: rgba(13, 17, 23, 0.9); /* Fundo escuro de alto contraste */
+    max-width: 400px;
+    background: rgba(13, 17, 23, 0.9);
     padding: 35px 30px;
-    border-radius: 16px;
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7);
-    margin: 0 auto cubic-bezier(0.4, 0, 0.2, 1);
-    margin-top: auto;    /* Truque flexbox para centralização vertical perfeita */
-    margin-bottom: auto; /* Truque flexbox para centralização vertical perfeita */
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -99,67 +92,51 @@ h1 {
 
 .user-setup-section input {
     width: 100%;
-    padding: 14px 20px;
-    background: rgba(255, 255, 255, 0.08);
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.07);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    color: #ffffff !important;
+    color: #ffffff;
     font-size: 1rem;
     outline: none;
-    transition: border-color 0.2s, background-color 0.2s;
+    transition: border-color 0.2s;
 }
 
 .user-setup-section input:focus {
-    border-color: #3880ff;
-    background: rgba(255, 255, 255, 0.15);
+    border-color: #007bff;
 }
 
-/* Garante visibilidade do texto interno (Placeholder) */
 .user-setup-section input::placeholder {
-    color: rgba(255, 255, 255, 0.6) !important;
+    color: rgba(255, 255, 255, 0.5);
 }
 
 /* ==========================================================================
-   LAYOUT DO MODO AO VIVO (PADRÃO DESKTOP)
+   INTERFACE AO VIVO / CHAT / VÍDEOS
    ========================================================================== */
 .live-section {
     flex: 1;
     display: grid;
-    grid-template-columns: 1fr 340px; /* Vídeos na esquerda, Chat na direita */
+    grid-template-columns: 1fr 320px;
     gap: 20px;
-    min-height: 0; 
+    min-height: 0;
 }
 
-/* Grelha de Mosaico (Desktop) */
-.meeting-grid {
+.video-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    grid-auto-rows: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 15px;
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    padding-right: 5px;
 }
 
-/* Janelas de Vídeo */
 .video-wrapper {
     background: #111418;
     border-radius: 12px;
     overflow: hidden;
     position: relative;
-    width: 100%;
-    height: 100%;
-    border: 2px solid rgba(255, 255, 255, 0.05);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    aspect-ratio: 4 / 3;
     display: flex;
     justify-content: center;
     align-items: center;
-    aspect-ratio: 16 / 9;
-}
-
-.video-wrapper.my-stream {
-    border: 2px solid #3880ff;
 }
 
 .video-wrapper video {
@@ -168,99 +145,56 @@ h1 {
     object-fit: cover;
 }
 
+#localVideo {
+    transform: scaleX(-1); /* Efeito espelho na cam frontal */
+}
+
 .video-title {
     position: absolute;
-    bottom: 10px;
-    left: 10px;
-    background: rgba(0, 0, 0, 0.75);
+    bottom: 12px;
+    left: 12px;
+    background: rgba(0, 0, 0, 0.7);
     padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    font-size: 0.8rem;
     z-index: 5;
 }
 
 .controls {
     position: absolute;
-    top: 10px;
-    right: 10px;
+    top: 12px;
+    right: 12px;
     display: flex;
-    gap: 6px;
-    z-index: 10;
+    gap: 8px;
+    z-index: 5;
 }
-
-/* ==========================================================================
-   BOTÕES E COMPONENTES INTERATIVOS
-   ========================================================================== */
-.action-button, .control-button {
-    font-weight: 600;
-    border: none;
-    cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.action-button:active, .control-button:active {
-    transform: scale(0.98);
-}
-
-.action-button {
-    padding: 12px 24px;
-    border-radius: 8px;
-    font-size: 0.9rem;
-}
-
-.action-button.primary { background-color: #3880ff; color: #fff; }
-.action-button.primary:hover { background-color: #2870ea; }
-.action-button.danger { background-color: #eb445a; color: #fff; }
-.action-button.danger:hover { background-color: #d83046; }
 
 .control-button {
-    padding: 6px 10px;
+    padding: 6px 12px;
     background: rgba(0, 0, 0, 0.7);
-    color: #fff;
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    font-size: 0.7rem;
-}
-.control-button:hover {
-    background: rgba(255, 255, 255, 0.15);
+    font-size: 0.75rem;
+    cursor: pointer;
 }
 
-/* Barramento inferior de botões */
-.call-actions {
-    grid-column: span 2;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    padding-top: 5px;
-}
-
-/* ==========================================================================
-   CHAT DE MENSAGENS
-   ========================================================================== */
+/* CHAT */
 .text-chat {
-    background: rgba(0, 0, 0, 0.4);
+    background: rgba(0, 0, 0, 0.3);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     display: flex;
     flex-direction: column;
-    height: 100%;
     overflow: hidden;
 }
 
 .text-chat h3 {
-    font-size: 0.85rem;
-    padding: 12px 15px;
-    background: rgba(255,255,255,0.02);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: 0.8rem;
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: rgba(255,255,255,0.6);
 }
 
 #messages {
@@ -276,102 +210,61 @@ h1 {
     padding: 8px 12px;
     border-radius: 8px;
     font-size: 0.85rem;
-    line-height: 1.4;
     max-width: 85%;
     word-wrap: break-word;
 }
 
-#messages p.sent { background: #3880ff; color: #fff; align-self: flex-end; border-bottom-right-radius: 2px; }
-#messages p.received { background: rgba(255, 255, 255, 0.1); color: #fff; align-self: flex-start; border-bottom-left-radius: 2px; }
-#messages p.success, #messages p.info { background: rgba(255, 255, 255, 0.03); color: rgba(255,255,255,0.4); font-size: 0.75rem; align-self: center; border-radius: 20px; text-align: center; }
+#messages p.sent { background: #007bff; color: white; align-self: flex-end; }
+#messages p.received { background: rgba(255, 255, 255, 0.1); color: white; align-self: flex-start; }
+#messages p.info, #messages p.success, #messages p.warning { background: transparent; color: rgba(255,255,255,0.4); font-size: 0.75rem; align-self: center; }
 
 .message-input-area {
     padding: 10px;
     display: flex;
-    gap: 6px;
-    background: rgba(0, 0, 0, 0.2);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .message-input-area input {
     flex: 1;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     padding: 10px;
     border-radius: 6px;
-    color: #fff;
+    color: white;
     outline: none;
-    font-size: 0.9rem;
 }
 
-.action-button.small { padding: 0 12px; border-radius: 6px; background: #3880ff; color: white; font-size: 0.8rem; }
+/* BOTÕES DE AÇÃO */
+.call-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
 
-.status-message { font-size: 0.85rem; text-align: center; margin-top: 5px; }
-.status-message.warning { color: #ffc409; }
-.status-message.info { color: #52a1ff; }
-.status-message.error { color: #eb445a; }
+.action-button {
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
 
-/* ==========================================================================
-   OTIMIZAÇÃO COMPLETA PARA TELEMÓVEIS (RESPONSIVO ADAPTÁVEL)
-   ========================================================================== */
-@media (max-width: 800px) {
-    body {
-        overflow-y: auto; /* Permite scroll se o teclado do telemóvel subir */
-    }
+.action-button.primary { background: #007bff; color: white; }
+.action-button.danger { background: #dc3545; color: white; }
+.action-button.small { padding: 0 15px; font-size: 0.85rem; background: #007bff; color: white; }
 
-    .main-container {
-        height: auto;
-        min-height: 96vh;
-        padding: 12px;
-        margin: 10px 0;
-        gap: 12px;
-    }
+.status-message { font-size: 0.85rem; text-align: center; }
+.status-message.error { color: #dc3545; }
 
-    h1 {
-        font-size: 1.1rem;
-        margin-bottom: 15px;
-    }
-
-    /* Transforma a grelha em coluna única no telemóvel */
-    .live-section {
-        grid-template-columns: 1fr;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    /* Ajuste para que a caixa de login não quebre no ecrã do telemóvel */
-    .user-setup-section {
-        margin: auto;
-        width: 100%;
-        max-width: 100%;
-        padding: 25px 20px;
-    }
-
-    .meeting-grid {
-        grid-template-columns: 1fr;
-        grid-auto-rows: auto;
-        height: auto;
-        overflow-y: visible;
-    }
-
-    .video-wrapper {
-        height: 200px;
-        aspect-ratio: auto;
-    }
-
-    .text-chat {
-        height: 320px;
-        min-height: 320px;
-    }
-
-    .call-actions {
-        grid-column: span 1;
-        flex-direction: column;
-        width: 100%;
-    }
-
-    .action-button {
-        width: 100%;
-    }
+/* RESPONSIVIDADE MOBILE */
+@media (max-width: 768px) {
+    body { overflow-y: auto; }
+    .main-container { height: auto; min-height: 90vh; padding: 15px; }
+    .live-section { grid-template-columns: 1fr; display: flex; flex-direction: column; }
+    .video-grid { grid-template-columns: 1fr; }
+    .text-chat { height: 280px; }
+    .call-actions { flex-direction: column; }
+    .action-button { width: 100%; }
 }
