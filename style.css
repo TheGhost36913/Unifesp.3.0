@@ -77,7 +77,7 @@ h1 {
 }
 
 /* ==========================================================================
-   TELA DE LOGIN / SETUP
+   PAINEL DE LOGIN / SETUP (NOME DE USUÁRIO E SALA)
    ========================================================================== */
 .user-setup-section {
     margin: auto;
@@ -90,6 +90,8 @@ h1 {
     padding: 30px;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 20;
 }
 
 .user-setup-section input {
@@ -101,11 +103,16 @@ h1 {
     color: #fff;
     font-size: 1rem;
     outline: none;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, background-color 0.2s;
 }
 
 .user-setup-section input:focus {
     border-color: #3880ff;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.user-setup-section placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }
 
 /* ==========================================================================
@@ -155,7 +162,6 @@ h1 {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transform: scaleX(-1);
 }
 
 .video-title {
@@ -188,10 +194,14 @@ h1 {
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: background 0.2s, transform 0.1s;
     display: inline-flex;
     align-items: center;
     justify-content: center;
+}
+
+.action-button:active, .control-button:active {
+    transform: scale(0.98);
 }
 
 .action-button {
@@ -213,9 +223,21 @@ h1 {
     border: 1px solid rgba(255, 255, 255, 0.2);
     font-size: 0.7rem;
 }
+.control-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* Barramento inferior de botões */
+.call-actions {
+    grid-column: span 2;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    padding-top: 5px;
+}
 
 /* ==========================================================================
-   CHAT LATERAL
+   CHAT DE MENSAGENS
    ========================================================================== */
 .text-chat {
     background: rgba(0, 0, 0, 0.4);
@@ -280,20 +302,13 @@ h1 {
 
 .action-button.small { padding: 0 12px; border-radius: 6px; background: #3880ff; color: white; font-size: 0.8rem; }
 
-.call-actions {
-    grid-column: span 2;
-    display: flex;
-    justify-content: center;
-    padding-top: 5px;
-}
-
-.status-message { font-size: 0.85rem; text-align: center; }
+.status-message { font-size: 0.85rem; text-align: center; margin-top: 5px; }
 .status-message.warning { color: #ffc409; }
 .status-message.info { color: #52a1ff; }
 .status-message.error { color: #eb445a; }
 
 /* ==========================================================================
-   OTIMIZAÇÃO COMPLETA PARA TELEMÓVEIS (MOBILE-FIRST ADAPTIVE)
+   OTIMIZAÇÃO COMPLETA PARA TELEMÓVEIS (RESPONSIVO ADAPTÁVEL)
    ========================================================================== */
 @media (max-width: 800px) {
     body {
@@ -341,24 +356,11 @@ h1 {
 
     .call-actions {
         grid-column: span 1;
+        flex-direction: column;
         width: 100%;
     }
 
     .action-button {
-        width: 100%;                /* Botões ocupam a largura total para facilitar o clique com o polegar */
-    }
-}
-.call-actions {
-    grid-column: span 2;
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    padding-top: 5px;
-}
-@media (max-width: 800px) {
-    .call-actions {
-        grid-column: span 1;
-        flex-direction: column;
-        width: 100%;
+        width: 100%;                /* Botões ocupam a largura total para facilitar o clique */
     }
 }
