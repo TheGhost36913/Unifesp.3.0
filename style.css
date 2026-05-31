@@ -65,6 +65,7 @@ body::before {
     flex-direction: column;
     gap: 15px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+    position: relative;
 }
 
 h1 {
@@ -77,30 +78,34 @@ h1 {
 }
 
 /* ==========================================================================
-   PAINEL DE LOGIN / SETUP (NOME DE USUÁRIO E SALA)
+   PAINEL DE LOGIN / SETUP (NOME DE USUÁRIO E SALA) - CORRIGIDO
    ========================================================================== */
 .user-setup-section {
-    margin: auto;
-    width: 100%;
-    max-width: 380px;
-    display: flex;
+    display: flex !important; /* Força o comportamento estrutural correto */
     flex-direction: column;
     gap: 15px;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 30px;
+    width: 100%;
+    max-width: 380px;
+    background: rgba(13, 17, 23, 0.85); /* Fundo sólido escuro para total leitura */
+    backdrop-filter: blur(10px);
+    padding: 35px 30px;
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    z-index: 20;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.8);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999; /* Garante que fica por cima de absolutamente tudo */
 }
 
 .user-setup-section input {
     width: 100%;
     padding: 14px 20px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 8px;
-    color: #fff;
+    color: #ffffff;
     font-size: 1rem;
     outline: none;
     transition: border-color 0.2s, background-color 0.2s;
@@ -108,11 +113,12 @@ h1 {
 
 .user-setup-section input:focus {
     border-color: #3880ff;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.15);
 }
 
-.user-setup-section placeholder {
-    color: rgba(255, 255, 255, 0.5);
+/* Força visibilidade do texto provisório */
+.user-setup-section input::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
 }
 
 /* ==========================================================================
