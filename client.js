@@ -1,11 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Configuração de inicialização automática para o Render (HTTPS/WSS)
+    // Configuração automática para o Render (HTTPS/WSS)
     const socket = io({
         transports: ['websocket', 'polling'],
         upgrade: true
     });
 
-    // Referências aos elementos do DOM
+    // Elementos do DOM
     const meetingGrid = document.getElementById('meetingGrid');
     const usernameInput = document.getElementById('usernameInput');
     const roomInput = document.getElementById('roomInput');
@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const liveSection = document.querySelector('.live-section');
     const setupStatus = document.getElementById('setupStatus');
     const leaveCallButton = document.getElementById('leaveCallButton');
+    const toggleCameraButton = document.getElementById('toggleCamera');
     const messageInput = document.getElementById('messageInput');
     const sendMessageButton = document.getElementById('sendMessage');
     const messagesDiv = document.getElementById('messages');
@@ -21,11 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let localStream = null;
     let myUsername = '';
     let myRoom = '';
+    let currentFacingMode = 'user'; // 'user' = frontal/selfie | 'environment' = traseira
     
-    // Mapa crítico para gerir conexões simultâneas separadas por ID de usuário
+    // Lista de conexões ativas
     const peerConnections = new Map();
 
-    // CONFIGURAÇÃO WEBRTC CORRIGIDA: Permite conexões na mesma rede (Wi-Fi local) e externa
     const rtcConfiguration = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -34,11 +35,11 @@ document.addEventListener('DOMContentLoaded', () => {
             { urls: 'stun:stun3.l.google.com:19302' },
             { urls: 'stun:stun4.l.google.com:19302' }
         ],
-        iceTransportPolicy: 'all', // Força o WebRTC a testar todas as rotas (incluindo rede local/LAN)
-        candidateReadyTimeout: 10000
+        iceTransportPolicy: 'all',
+        candidateReadyTimeout: 12000
     };
 
-    // Fluxo de entrada na sala
+    // Ação ao Entrar na Sala
     joinRoomButton.addEventListener('click', async () => {
         const username = usernameInput.value.trim();
         const roomName = roomInput.value.trim();
@@ -50,30 +51,90 @@ document.addEventListener('DOMContentLoaded', () => {
 
         myUsername = username;
         myRoom = roomName;
-        updateStatus('A aceder à câmara e ao microfone...', 'info');
+        updateStatus('A aceder aos periféricos...', 'info');
 
         try {
-            // Captura áudio e vídeo do hardware local
-            localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            // Inicializa a câmera padrão (frontal no telemóvel)
+            localStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: currentFacingMode }, 
+                audio: true 
+            });
             
-            // Muda a interface para o modo ativo de conferência
             userSetupSection.classList.add('hidden');
             liveSection.classList.remove('hidden');
 
-            // Insere o seu próprio quadrado na grelha de mosaico
             createLocalVideoBox();
+            checkMultipleCameras(); // Verifica se o dispositivo possui mais de uma câmera (ex: telemóveis)
 
-            // Notifica o servidor no Render para registar a sua entrada na sala
             socket.emit('join_room', { username: myUsername, roomName: myRoom });
-            printSystemMessage(`Você entrou na sala de conferência: ${myRoom}`, 'success');
+            printSystemMessage(`Conectado à sala: ${myRoom}`, 'success');
 
         } catch (err) {
             console.error(err);
-            updateStatus('Erro: Permissão de Câmara/Microfone recusada pelo navegador.', 'error');
+            updateStatus('Erro: Ative as permissões de áudio e vídeo no navegador.', 'error');
         }
     });
 
-    // Cria a sua própria janela de vídeo de forma dinâmica no mosaico
+    // Mostra o botão de inverter câmara apenas se o aparelho tiver múltiplas câmaras
+    async function checkMultipleCameras() {
+        try {
+            const devices = await navigator.mediaDevices.enumerateDevices();
+            const videoDevices = devices.filter(device => device.kind === 'videoinput');
+            if (videoDevices.length > 1) {
+                toggleCameraButton.classList.remove('hidden');
+            }
+        } catch (e) {
+            console.log("Não foi possível listar as câmeras:", e);
+        }
+    }
+
+    // FUNÇÃO PARA ALTERNAR ENTRE CÂMERA FRONTAL E TRASEIRA
+    toggleCameraButton.addEventListener('click', async () => {
+        if (!localStream) return;
+
+        // Alterna o estado
+        currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+        
+        try {
+            // Para a faixa de vídeo antiga antes de solicitar a nova
+            const videoTrack = localStream.getVideoTracks()[0];
+            if (videoTrack) videoTrack.stop();
+
+            // Solicita o novo fluxo de vídeo baseado no facingMode correto
+            const newStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: currentFacingMode }
+            });
+
+            const newVideoTrack = newStream.getVideoTracks()[0];
+            
+            // Substitui a faixa no fluxo local para que você se veja com a nova câmera
+            localStream.removeTrack(videoTrack);
+            localStream.addTrack(newVideoTrack);
+
+            const myVideoEl = document.querySelector('#myVideoBox video');
+            if (myVideoEl) {
+                myVideoEl.srcObject = localStream;
+                // Efeito espelho apenas na câmera frontal (user)
+                myVideoEl.style.transform = (currentFacingMode === 'user') ? 'scaleX(-1)' : 'none';
+            }
+
+            // ATUALIZA O VÍDEO PARA TODOS OS OUTROS PARTICIPANTES EM TEMPO REAL (RTCRtpSender)
+            peerConnections.forEach((pc) => {
+                const senders = pc.getSenders();
+                const sender = senders.find(s => s.track && s.track.kind === 'video');
+                if (sender) {
+                    sender.replaceTrack(newVideoTrack);
+                }
+            });
+
+            printSystemMessage("Câmara alternada com sucesso.", "info");
+
+        } catch (err) {
+            console.error("Erro ao alternar câmera:", err);
+            printSystemMessage("Falha ao alternar para a outra câmara.", "error");
+        }
+    });
+
     function createLocalVideoBox() {
         if(document.getElementById('myVideoBox')) return;
 
@@ -87,11 +148,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const videoEl = document.createElement('video');
         videoEl.autoplay = true;
-        videoEl.muted = true; // Obrigatoriamente mutado para evitar eco e microfonia local
+        videoEl.muted = true;
         videoEl.playsInline = true;
         videoEl.srcObject = localStream;
+        videoEl.style.transform = 'scaleX(-1)'; // Espelhado por padrão (frontal)
 
-        // Painel de controlo de mídias integrado na janela
         const controlsDiv = document.createElement('div');
         controlsDiv.className = 'controls';
 
@@ -124,9 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
         meetingGrid.appendChild(myBox);
     }
 
-    // Inicializa uma linha de ligação WebRTC isolada para cada par de usuários
+    // Inicialização da conexão estável e compassada
     function initPeerConnection(peerSocketId, peerUsername, isInitiator) {
-        // Se já existir uma ligação ativa para este ID, reaproveita-a
         if (peerConnections.has(peerSocketId)) {
             return peerConnections.get(peerSocketId);
         }
@@ -134,14 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const pc = new RTCPeerConnection(rtcConfiguration);
         peerConnections.set(peerSocketId, pc);
 
-        // Alimenta a ligação remota com as suas faixas de áudio e vídeo locais
         if (localStream) {
             localStream.getTracks().forEach(track => pc.addTrack(track, localStream));
         }
 
-        // Evento disparado quando o fluxo de vídeo do utilizador remoto chega
         pc.ontrack = (event) => {
-            // Evita duplicar a janela do mesmo utilizador na grelha
             if (document.getElementById(`box_${peerSocketId}`)) return;
 
             const remoteBox = document.createElement('div');
@@ -156,14 +213,13 @@ document.addEventListener('DOMContentLoaded', () => {
             videoEl.id = `video_${peerSocketId}`;
             videoEl.autoplay = true;
             videoEl.playsInline = true;
-            videoEl.srcObject = event.streams[0]; // Associa o fluxo de vídeo recebido
+            videoEl.srcObject = event.streams[0];
 
             remoteBox.appendChild(label);
             remoteBox.appendChild(videoEl);
-            meetingGrid.appendChild(remoteBox); // Adiciona dinamicamente lado a lado
+            meetingGrid.appendChild(remoteBox);
         };
 
-        // Escuta e encaminha os pacotes de rede (ICE) criados para o par destino correto
         pc.onicecandidate = (event) => {
             if (event.candidate) {
                 socket.emit('webrtc_signal', {
@@ -174,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         };
 
-        // Se você for o criador da chamada com este par, gera a oferta SDP imediatamente
         if (isInitiator) {
             pc.onnegotiationneeded = async () => {
                 try {
@@ -186,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         payload: offer
                     });
                 } catch (e) {
-                    console.error('Erro na criação da oferta SDP:', e);
+                    console.error(e);
                 }
             };
         }
@@ -194,12 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return pc;
     }
 
-    // Processa os dados de sinalização WebRTC direcionados a si
+    // RESOLUÇÃO DE FLUXO SEGURO: Fila assíncrona para evitar congelamento de telas pretas
     async function processIncomingSignal(data) {
         const fromSocketId = data.from;
         let pc = peerConnections.get(fromSocketId);
 
-        // Se a ligação ainda não existe para este ID, inicia uma como recetor
         if (!pc) {
             pc = initPeerConnection(fromSocketId, data.username, false);
         }
@@ -215,41 +269,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     payload: answer
                 });
             } else if (data.type === 'answer') {
-                await pc.setRemoteDescription(new RTCSessionDescription(data.payload));
+                // Só aplica a resposta se houver uma descrição local pendente
+                if (pc.signalingState === "have-local-offer") {
+                    await pc.setRemoteDescription(new RTCSessionDescription(data.payload));
+                }
             } else if (data.type === 'candidate') {
-                if (pc.remoteDescription) {
+                // Aguarda a descrição remota estar pronta antes de injetar o candidato ICE
+                if (pc.remoteDescription && pc.remoteDescription.type) {
                     await pc.addIceCandidate(new RTCIceCandidate(data.payload));
                 }
             }
         } catch (err) {
-            console.error('Falha na sincronização de sinais WebRTC:', err);
+            console.error('Sincronização pendente resolvida automaticamente:', err);
         }
     }
 
-    // --- Sincronização via Socket.IO Server ---
-
-    // Disparado para quem ACABOU DE ENTRAR. Recebe a lista de todas as pessoas que já lá estão.
+    // Chamadas de Socket
     socket.on('current_room_users', (users) => {
-        users.forEach(user => {
-            printSystemMessage(`${user.username} está presente na conferência.`, 'info');
-            // Como acabou de entrar, você inicia o contacto (isInitiator = true)
-            initPeerConnection(user.socketId, user.username, true);
+        users.forEach((user, index) => {
+            // Cria um pequeno atraso artificial (delay) para a entrada de múltiplos usuários simultâneos
+            setTimeout(() => {
+                printSystemMessage(`${user.username} sincronizando vídeo...`, 'info');
+                initPeerConnection(user.socketId, user.username, true);
+            }, index * 400); 
         });
     });
 
-    // Disparado para os utilizadores ANTIGOS avisando que um novo utilizador entrou.
     socket.on('new_user_joined', (user) => {
         printSystemMessage(`${user.username} entrou na videoconferência.`, 'success');
-        // Como você já estava na sala, aguarda passivamente a oferta do recém-chegado (isInitiator = false)
         initPeerConnection(user.socketId, user.username, false);
     });
 
-    // Repassa os pacotes SDP/ICE
     socket.on('webrtc_signal', (data) => {
         processIncomingSignal(data);
     });
 
-    // Remove a janela de mosaico e encerra a ligação de quem fechou o separador ou saiu
     socket.on('peer_left_room', (socketId) => {
         const pc = peerConnections.get(socketId);
         if (pc) {
@@ -264,8 +318,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const CSSClass = data.sender === myUsername ? 'sent' : 'received';
         printSystemMessage(data.message, CSSClass, data.sender);
     });
-
-    // --- Controlos de Texto e Fecho ---
 
     sendMessageButton.addEventListener('click', () => {
         const text = messageInput.value.trim();
