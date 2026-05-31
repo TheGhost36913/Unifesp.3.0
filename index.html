@@ -3,42 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Plataforma de Reunião</title>
+    <title> - The New Era - </title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-    <video autoplay muted loop playsinline id="background-video">
+    <video autoplay muted loop playsinline id=\"background-video\">
         <source src="https://videos.pexels.com/video-files/3191572/3191572-uhd_2560_1440_25fps.mp4" type="video/mp4">
+        Seu navegador não suporta vídeos de fundo.
     </video>
 
     <div class="main-container">
-        <h1>Sala de Reunião Corporativa</h1>
+        <h1> .°. - Welcome to The New - .°. </h1>
 
         <div class="user-setup-section">
-            <input type="text" id="usernameInput" placeholder="Seu Nome de Usuário" maxlength="15">
-            <input type="text" id="roomInput" placeholder="Nome ou ID da Sala" maxlength="20">
-            <button id="joinRoomButton" class="action-button primary">Entrar na Sala</button>
+            <input type="text" id="usernameInput" placeholder="Digite seu nome de usuário" required maxlength="15">
+            <input type="text" id="roomInput" placeholder="Nome da Sala (Ex: sala1)" required>
+            <button id="joinRoomButton" class="action-button primary">Entrar na Live</button>
             <p class="status-message" id="setupStatus"></p>
         </div>
 
         <div class="live-section hidden">
-            
-            <div id="meetingGrid" class="meeting-grid">
-                
-                </div>
+            <div class="meeting-grid" id="meetingGrid"></div>
 
             <div class="text-chat">
-                <h3>Chat da Sala</h3>
+                <h3>Chat de Mensagens</h3>
                 <div id="messages"></div>
                 <div class="message-input-area">
-                    <input type="text" id="messageInput" placeholder="Escreva uma mensagem...">
+                    <input type="text" id="messageInput" placeholder="Digite sua mensagem...">
                     <button id="sendMessage" class="action-button small">Enviar</button>
                 </div>
             </div>
 
             <div class="call-actions">
-                <button id="leaveCallButton" class="action-button danger">Desconectar da Reunião</button>
+                <button id="toggleCamera" class="action-button primary hidden">Inverter Câmara</button>
+                <button id="leaveCallButton" class="action-button danger">Sair da Sala</button>
             </div>
         </div>
     </div>
