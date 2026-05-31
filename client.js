@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Configuração automática para o Render (HTTPS/WSS)
+    // Configuração de inicialização automática para o Render (HTTPS/WSS)
     const socket = io({
         transports: ['websocket', 'polling'],
         upgrade: true
@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Mapa crítico para gerir conexões simultâneas separadas por ID de usuário
     const peerConnections = new Map();
 
-    // Servidores públicos STUN da Google atualizados para quebra de NAT/Firewall
+    // CONFIGURAÇÃO WEBRTC CORRIGIDA: Permite conexões na mesma rede (Wi-Fi local) e externa
     const rtcConfiguration = {
         iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
@@ -33,10 +33,12 @@ document.addEventListener('DOMContentLoaded', () => {
             { urls: 'stun:stun2.l.google.com:19302' },
             { urls: 'stun:stun3.l.google.com:19302' },
             { urls: 'stun:stun4.l.google.com:19302' }
-        ]
+        ],
+        iceTransportPolicy: 'all', // Força o WebRTC a testar todas as rotas (incluindo rede local/LAN)
+        candidateReadyTimeout: 10000
     };
 
-    // Ação ao clicar para entrar na sala
+    // Fluxo de entrada na sala
     joinRoomButton.addEventListener('click', async () => {
         const username = usernameInput.value.trim();
         const roomName = roomInput.value.trim();
@@ -63,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Notifica o servidor no Render para registar a sua entrada na sala
             socket.emit('join_room', { username: myUsername, roomName: myRoom });
-            printSystemMessage(`Conectado à sala: ${myRoom}`, 'success');
+            printSystemMessage(`Você entrou na sala de conferência: ${myRoom}`, 'success');
 
         } catch (err) {
             console.error(err);
@@ -71,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Cria a sua própria janela de vídeo de forma dinâmica
+    // Cria a sua própria janela de vídeo de forma dinâmica no mosaico
     function createLocalVideoBox() {
         if(document.getElementById('myVideoBox')) return;
 
@@ -89,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
         videoEl.playsInline = true;
         videoEl.srcObject = localStream;
 
-        // Painel de controlo integrado na janela
+        // Painel de controlo de mídias integrado na janela
         const controlsDiv = document.createElement('div');
         controlsDiv.className = 'controls';
 
@@ -122,7 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
         meetingGrid.appendChild(myBox);
     }
 
-    // Inicializa uma linha de ligação WebRTC isolada para cada par
+    // Inicializa uma linha de ligação WebRTC isolada para cada par de usuários
     function initPeerConnection(peerSocketId, peerUsername, isInitiator) {
         // Se já existir uma ligação ativa para este ID, reaproveita-a
         if (peerConnections.has(peerSocketId)) {
